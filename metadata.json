@@ -1,0 +1,8 @@
+{
+  "name": "Dental Clinic Website",
+  "description": "A comprehensive, multi-page web application for a dental clinic featuring appointment booking, services overview, and patient resources.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

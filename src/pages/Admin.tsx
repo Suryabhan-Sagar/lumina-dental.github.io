@@ -1,0 +1,328 @@
+import React, { useState, useEffect } from 'react';
+import { Shield, Lock, User, LayoutDashboard, LogOut, CheckCircle, Clock, Calendar } from 'lucide-react';
+import { SEO } from '../components/SEO';
+
+export function Admin() {
+  const [view, setView] = useState<'loading' | 'dashboard' | 'login' | 'setup' | 'missing_table'>('loading');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Dashboard state
+  const [appointments, setAppointments] = useState<any[]>([]);
+
+  useEffect(() => {
+    checkStatus();
+  }, []);
+
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('admin_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  const checkStatus = async () => {
+    try {
+      // Check if admin is logged in
+      const authRes = await fetch('/api/admin/auth-check', {
+        headers: getAuthHeaders()
+      });
+      if (authRes.ok) {
+        setView('dashboard');
+        fetchAppointments();
+        return;
+      }
+      
+      // If not logged in, check if setup is complete
+      const statusRes = await fetch('/api/admin/status');
+      const statusData = await statusRes.json();
+
+      if (!statusData.tableExists) {
+        setView('missing_table');
+      } else if (!statusData.isSetup) {
+        setView('setup');
+      } else {
+        setView('login');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load admin module.');
+    }
+  };
+
+  const fetchAppointments = async () => {
+    try {
+      const res = await fetch('/api/admin/appointments', {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) {
+        if (res.status === 401) {
+           setView('login');
+           return;
+        }
+        throw new Error('Failed to load');
+      }
+      const json = await res.json();
+      setAppointments(json.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.token) {
+          localStorage.setItem('admin_token', data.token);
+        }
+        setView('dashboard');
+        fetchAppointments();
+      } else {
+        setError(data.error || 'Failed to setup admin.');
+      }
+    } catch (err) {
+      setError('An error occurred.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.token) {
+          localStorage.setItem('admin_token', data.token);
+        }
+        setView('dashboard');
+        fetchAppointments();
+      } else {
+        setError(data.error || 'Invalid credentials.');
+      }
+    } catch (err) {
+      setError('An error occurred.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { 
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      localStorage.removeItem('admin_token');
+      setView('login');
+      setUsername('');
+      setPassword('');
+      setAppointments([]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (view === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0D9488]"></div>
+      </div>
+    );
+  }
+
+  if (view === 'missing_table') {
+    return (
+      <div className="py-20 px-4 max-w-2xl mx-auto text-center">
+        <SEO title="Admin Setup Required - Lumina Dental" description="Admin workspace required setup" />
+        <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
+
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Database Schema Missing</h1>
+        <p className="text-gray-600 mb-6 text-left">
+          The <code>admin_users</code> table has not been created yet in your Supabase project. 
+          Please run the latest SQL script in your Supabase SQL Editor. Check the <code>supabase_schema.sql</code> file for the exact query.
+        </p>
+      </div>
+    );
+  }
+
+  if (view === 'setup' || view === 'login') {
+    const isSetup = view === 'setup';
+    return (
+      <div className="py-20 px-4">
+        <SEO title={`${isSetup ? 'Admin Setup' : 'Admin Login'} - Lumina Dental`} description="Admin secure login and setup area" />
+        
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-[#E2E8F0] overflow-hidden">
+          <div className="bg-[#1A4B56] p-8 text-center text-white">
+            {isSetup ? (
+              <Shield className="w-12 h-12 mx-auto mb-4 text-[#2DD4BF]" />
+            ) : (
+              <Lock className="w-12 h-12 mx-auto mb-4 text-[#2DD4BF]" />
+            )}
+            <h1 className="text-2xl font-bold mb-2">{isSetup ? 'Create Admin Account' : 'Admin Login'}</h1>
+            <p className="text-[#94A3B8]">
+              {isSetup 
+                ? 'Create the single admin account. This slot is only available once.' 
+                : 'Enter your credentials to access the secure admin dashboard.'}
+            </p>
+          </div>
+
+          <div className="p-8">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={isSetup ? handleSetup : handleLogin} className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Username / Email</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all outline-none"
+                    placeholder="Enter username or email"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all outline-none"
+                    placeholder="Enter password"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-xl font-bold transition-colors disabled:opacity-70"
+              >
+                {isSubmitting ? 'Processing...' : (isSetup ? 'Create Account' : 'Secure Login')}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-12 px-4 max-w-7xl mx-auto">
+      <SEO title="Admin Dashboard - Lumina Dental" description="Secure dashboard to manage Lumina Dental appointments" />
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-[#0D9488]/10 rounded-xl flex items-center justify-center text-[#0D9488]">
+            <LayoutDashboard className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600">Manage your clinic bookings securely.</p>
+          </div>
+        </div>
+        
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors border border-gray-200"
+        >
+          <LogOut className="w-4 h-4" />
+          Log out
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Patient</th>
+                <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Contact</th>
+                <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Appointment</th>
+                <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Department / Doctor</th>
+                <th className="py-4 px-6 font-semibold text-gray-600 text-sm">Status / Reason</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {appointments.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 px-6 text-center text-gray-500">
+                    No appointments booked yet.
+                  </td>
+                </tr>
+              ) : (
+                appointments.map((apt) => (
+                  <tr key={apt.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="font-bold text-gray-900">{apt.name}</div>
+                      <div className="text-xs text-gray-500 mt-1">DOB: {apt.date_of_birth}</div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="text-sm font-medium text-gray-800">{apt.phone}</div>
+                      <div className="text-xs text-gray-500 mt-1">{apt.email}</div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-1 text-sm font-medium text-gray-800 mb-1">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                        {apt.appointment_date}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                        {apt.time_slot}
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="text-sm font-medium text-gray-800">{apt.department}</div>
+                      <div className="text-xs text-gray-500 mt-1">{apt.doctor}</div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 mb-2">
+                        <CheckCircle className="w-3 h-3" />
+                        {apt.status}
+                      </div>
+                      <div className="text-sm text-gray-600 line-clamp-2 max-w-[200px]" title={apt.reason}>
+                        {apt.reason}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
