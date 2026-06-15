@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Phone, Menu, X, Smile } from 'lucide-react';
+import { Menu, X, Smile, LogOut, User } from 'lucide-react';
 import { CTAButton } from '../ui/CTAButton';
+import { useAuth } from '../../context/AuthContext';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,11 +66,30 @@ export function Header() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center space-x-6">
-            <div className="text-right">
-              <Link to="/contact" className="text-sm font-bold text-[#1A4B56] hover:text-[#0D9488] transition-colors">
-                Contact Us
-              </Link>
-            </div>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-gray-700 flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                  <User className="w-4 h-4 text-[#0D9488]" />
+                  {user.user_metadata?.full_name || user.email}
+                </span>
+                <button 
+                  onClick={signOut}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors flex items-center justify-center group"
+                  aria-label="Logout"
+                >
+                  <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link to="/login" className="text-sm font-bold text-[#1A4B56] hover:text-[#0D9488] transition-colors">
+                  Log In
+                </Link>
+                <Link to="/signup" className="text-sm font-bold text-[#0D9488] hover:text-[#0F766E] transition-colors border border-[#0D9488] px-4 py-2 rounded-xl">
+                  Sign Up
+                </Link>
+              </div>
+            )}
             <CTAButton to="/new-patients">Book Appointment</CTAButton>
           </div>
 
@@ -101,9 +122,31 @@ export function Header() {
               </Link>
             ))}
             <div className="mt-4 pt-4 border-t border-gray-100 px-3 flex flex-col space-y-4">
-              <Link to="/contact" className="flex items-center justify-center w-full py-3 bg-gray-100 rounded-md font-medium text-gray-900">
-                Contact Us
-              </Link>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 px-3 py-3 bg-gray-50 rounded-xl">
+                    <div className="w-10 h-10 bg-[#E0F2FE] text-[#0ea5e9] flex items-center justify-center rounded-full font-bold">
+                      {(user.user_metadata?.full_name || user.email || '?')[0].toUpperCase()}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">{user.user_metadata?.full_name || 'My Account'}</span>
+                      <span className="text-xs text-gray-500 truncate w-48">{user.email}</span>
+                    </div>
+                  </div>
+                  <button onClick={signOut} className="flex items-center justify-center w-full py-3 bg-gray-100 rounded-md font-medium text-gray-900 hover:bg-gray-200 hover:text-red-600 transition-colors">
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col space-y-3">
+                  <Link to="/login" className="flex items-center justify-center w-full py-3 bg-gray-50 rounded-md font-medium text-gray-900 hover:bg-gray-100">
+                    Log In
+                  </Link>
+                  <Link to="/signup" className="flex items-center justify-center w-full py-3 bg-[#E0F2FE] rounded-md font-medium text-[#0ea5e9] hover:bg-[#bae6fd]">
+                    Sign Up
+                  </Link>
+                </div>
+              )}
               <CTAButton to="/new-patients" className="w-full">
                 Book Appointment
               </CTAButton>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Lock, User, LayoutDashboard, LogOut, CheckCircle, Clock, Calendar } from 'lucide-react';
+import { Shield, Lock, User, LayoutDashboard, LogOut, CheckCircle, Clock, Calendar, BarChart2, PieChart as PieChartIcon } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { SEO } from '../components/SEO';
 
 export function Admin() {
@@ -239,6 +240,38 @@ export function Admin() {
     );
   }
 
+  const COLORS = ['#0D9488', '#14B8A6', '#2DD4BF', '#5EEAD4', '#0F766E', '#115E59'];
+
+  const getDailyVolumeData = () => {
+    const counts: Record<string, number> = {};
+    appointments.forEach(apt => {
+      const date = apt.appointment_date;
+      if (date) {
+        counts[date] = (counts[date] || 0) + 1;
+      }
+    });
+
+    return Object.entries(counts)
+      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+      .slice(-14)
+      .map(([date, count]) => ({ date, count }));
+  };
+
+  const getDepartmentData = () => {
+    const counts: Record<string, number> = {};
+    appointments.forEach(apt => {
+      const dept = apt.department || 'Other';
+      counts[dept] = (counts[dept] || 0) + 1;
+    });
+
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, value]) => ({ name, value }));
+  };
+
+  const dailyVolumeData = getDailyVolumeData();
+  const departmentData = getDepartmentData();
+
   return (
     <div className="py-12 px-4 max-w-7xl mx-auto">
       <SEO title="Admin Dashboard - Lumina Dental" description="Secure dashboard to manage Lumina Dental appointments" />
@@ -263,7 +296,76 @@ export function Admin() {
         </button>
       </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Daily Appointment Volume Chart */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E2E8F0]">
+            <div className="flex items-center gap-2 mb-6">
+              <BarChart2 className="w-5 h-5 text-[#0D9488]" />
+              <h2 className="text-lg font-bold text-gray-900">Daily Appointment Volume</h2>
+            </div>
+            <div className="h-[300px] w-full">
+              {appointments.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dailyVolumeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+                    <RechartsTooltip 
+                      cursor={{ fill: '#F1F5F9' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Bar dataKey="count" fill="#0D9488" radius={[4, 4, 0, 0]} barSize={32} name="Appointments" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">No data available</div>
+              )}
+            </div>
+          </div>
+
+          {/* Service Requests Distribution */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E2E8F0]">
+            <div className="flex items-center gap-2 mb-6">
+              <PieChartIcon className="w-5 h-5 text-[#0D9488]" />
+              <h2 className="text-lg font-bold text-gray-900">Service Requests</h2>
+            </div>
+            <div className="h-[300px] w-full">
+              {appointments.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={departmentData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {departmentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">No data available</div>
+              )}
+            </div>
+          </div>
+        </div>
+
       <div className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-900">Recent Appointments</h2>
+          <span className="bg-[#0D9488]/10 text-[#0D9488] px-3 py-1 rounded-full text-xs font-bold">
+            {appointments.length} Total
+          </span>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

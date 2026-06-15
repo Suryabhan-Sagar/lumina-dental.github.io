@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { CTAButton } from '../ui/CTAButton';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Lock } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { useAuth } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 interface BookingFormData {
   name: string;
@@ -40,9 +42,10 @@ const timeSlots = [
 ];
 
 export function BookingForm() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<BookingFormData>({
-    name: '',
-    email: '',
+    name: user?.user_metadata?.full_name || '',
+    email: user?.email || '',
     phone: '',
     dateOfBirth: '',
     department: '',
@@ -82,12 +85,16 @@ export function BookingForm() {
       setIsSubmitting(true);
       
       try {
+        const payload = {
+          ...formData,
+          userId: user?.id
+        };
         const response = await fetch('/api/appointments', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(payload)
         });
         
         if (!response.ok) {
@@ -98,7 +105,7 @@ export function BookingForm() {
         setIsSubmitting(false);
         setIsSuccess(true);
         setSubmittedData(formData);
-        setFormData({ name: '', email: '', phone: '', dateOfBirth: '', department: '', doctor: '', appointmentDate: '', timeSlot: '', reason: '' });
+        setFormData({ name: user?.user_metadata?.full_name || '', email: user?.email || '', phone: '', dateOfBirth: '', department: '', doctor: '', appointmentDate: '', timeSlot: '', reason: '' });
       } catch (error: any) {
         console.error('Error submitting form:', error);
         alert(`There was an error booking your appointment:\n${error.message}`);
@@ -176,6 +183,28 @@ export function BookingForm() {
           >
             Book Another
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="bg-white rounded-3xl shadow-xl border border-[#E2E8F0] p-8 h-full flex flex-col justify-center items-center text-center min-h-[400px]">
+        <div className="bg-orange-50 text-orange-600 p-4 rounded-full mb-6 relative">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h3 className="text-2xl font-bold text-[#1A4B56] mb-2">Login Required</h3>
+        <p className="text-gray-500 mb-8 max-w-sm">
+          Please log in to your account or sign up to book a dental appointment online.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+          <Link to="/login" className="bg-[#1A4B56] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#133A43] transition-colors shadow-lg">
+            Log In
+          </Link>
+          <Link to="/signup" className="bg-white text-[#1A4B56] border border-[#1A4B56] px-8 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+            Sign Up
+          </Link>
         </div>
       </div>
     );

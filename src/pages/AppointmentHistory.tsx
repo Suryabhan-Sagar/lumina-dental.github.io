@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { SEO } from '../components/SEO';
-import { Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Printer, Loader } from 'lucide-react';
+import { Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Printer, Loader, Lock } from 'lucide-react';
 import { CTAButton } from '../components/ui/CTAButton';
 import { jsPDF } from 'jspdf';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 interface Appointment {
   id: string;
@@ -15,23 +18,32 @@ interface Appointment {
 }
 
 export function AppointmentHistory() {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAppointments = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await fetch('/api/appointments');
-      const result = await response.json();
+      const { data, error: fetchError } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to fetch appointments');
+      if (fetchError) {
+        throw new Error(fetchError.message || 'Failed to fetch appointments');
       }
-      
-      console.log('Fetched appointments from server:', result.data);
 
-      const mappedData: Appointment[] = result.data.map((item: any) => {
+      console.log('Fetched appointments from Supabase:', data);
+
+      const mappedData: Appointment[] = (data || []).map((item: any) => {
         // Format UUID simply to a shorter format like APT-1234
         const shortId = item.id ? item.id.split('-')[0].toUpperCase().substring(0, 8) : '00000000';
         return {
@@ -56,7 +68,7 @@ export function AppointmentHistory() {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [user]);
 
   const getStatusIcon = (status: Appointment['status']) => {
     switch (status) {
@@ -100,6 +112,36 @@ export function AppointmentHistory() {
     
     doc.save(`${apt.id}_Details.pdf`);
   };
+
+  if (!user) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F8FBFC]">
+        <SEO 
+          title="Appointment History" 
+          description="View your past and upcoming dental appointments at Lumina Dental."
+        />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-xl border border-[#E2E8F0] p-12 max-w-lg w-full text-center">
+            <div className="bg-orange-50 text-orange-600 p-4 rounded-full mb-6 relative w-16 h-16 mx-auto flex items-center justify-center">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-bold text-[#1A4B56] mb-2">Login Required</h3>
+            <p className="text-gray-500 mb-8">
+              Please log in to your account to view your appointment history and manage your bookings.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+              <Link to="/login" className="bg-[#1A4B56] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#133A43] transition-colors shadow-lg">
+                Log In
+              </Link>
+              <Link to="/signup" className="bg-white text-[#1A4B56] border border-[#1A4B56] px-8 py-3 rounded-xl font-bold hover:bg-gray-50 transition-colors">
+                Sign Up
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FBFC]">

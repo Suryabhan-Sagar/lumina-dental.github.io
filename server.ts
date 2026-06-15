@@ -231,6 +231,7 @@ async function startServer() {
             appointment_date: formData.appointmentDate,
             time_slot: formData.timeSlot,
             reason: formData.reason,
+            user_id: formData.userId,
           }
         ])
         .select();
