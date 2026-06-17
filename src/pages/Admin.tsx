@@ -28,7 +28,6 @@ export function Admin() {
 
   const checkStatus = async () => {
     try {
-      // Check if admin is logged in
       const authRes = await fetch('/api/admin/auth-check', {
         headers: getAuthHeaders()
       });
@@ -38,13 +37,10 @@ export function Admin() {
         return;
       }
       
-      // If not logged in, check if setup is complete
       const statusRes = await fetch('/api/admin/status');
       const statusData = await statusRes.json();
 
-      if (!statusData.tableExists) {
-        setView('missing_table');
-      } else if (!statusData.isSetup) {
+      if (!statusData.isSetup) {
         setView('setup');
       } else {
         setView('login');
@@ -148,21 +144,6 @@ export function Admin() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0D9488]"></div>
-      </div>
-    );
-  }
-
-  if (view === 'missing_table') {
-    return (
-      <div className="py-20 px-4 max-w-2xl mx-auto text-center">
-        <SEO title="Admin Setup Required - Lumina Dental" description="Admin workspace required setup" />
-        <Shield className="w-16 h-16 text-yellow-500 mx-auto mb-6" />
-
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Database Schema Missing</h1>
-        <p className="text-gray-600 mb-6 text-left">
-          The <code>admin_users</code> table has not been created yet in your Supabase project. 
-          Please run the latest SQL script in your Supabase SQL Editor. Check the <code>supabase_schema.sql</code> file for the exact query.
-        </p>
       </div>
     );
   }

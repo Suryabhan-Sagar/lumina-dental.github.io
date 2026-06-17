@@ -12,6 +12,7 @@ const serviceCategories = [
     title: "General Dentistry",
     description: "Preventive care to maintain optimal oral health and detect issues early.",
     icon: <ShieldCheck className="h-6 w-6" />,
+    image: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     items: ["Exams & Cleanings", "Digital X-Rays", "Oral Cancer Screenings", "Fluoride Treatments", "Sealants"]
   },
   {
@@ -19,6 +20,7 @@ const serviceCategories = [
     title: "Cosmetic Dentistry",
     description: "Enhance the appearance of your smile with transformative treatments.",
     icon: <Star className="h-6 w-6" />,
+    image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
     items: ["Teeth Whitening", "Porcelain Veneers", "Dental Bonding", "Invisalign® Clear Aligners", "Smile Makeovers"]
   },
   {
@@ -26,6 +28,7 @@ const serviceCategories = [
     title: "Restorative Dentistry",
     description: "Repair and restore damaged or missing teeth for full functionality.",
     icon: <Activity className="h-6 w-6" />,
+    image: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=600&q=80",
     items: ["Tooth-Colored Fillings", "Crowns & Bridges", "Dental Implants", "Root Canal Therapy", "Dentures & Partials"]
   },
   {
@@ -33,6 +36,7 @@ const serviceCategories = [
     title: "Pediatric Dentistry",
     description: "Gentle, specialized care for infants, children, and teenagers.",
     icon: <Baby className="h-6 w-6" />,
+    image: "/pediatric.jpeg",
     items: ["First Dental Visits", "Kid-Friendly Exams", "Cavity Prevention", "Sports Mouthguards", "Space Maintainers"]
   },
   {
@@ -40,6 +44,7 @@ const serviceCategories = [
     title: "Periodontal Care",
     description: "Treatment and management of gum disease.",
     icon: <Heart className="h-6 w-6" />,
+    image: "/periodontal.jpeg",
     items: ["Scaling & Root Planing", "Gum Infection Therapy", "Maintenance Cleanings"]
   }
 ];
@@ -68,21 +73,30 @@ export function Services() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {serviceCategories.map((category) => (
               <div key={category.id} id={category.id} className="scroll-mt-24">
-                <div className="bg-[#F8FBFC] rounded-3xl shadow-sm border border-[#E2E8F0] p-8 h-full">
-                  <div className="h-14 w-14 bg-white shadow-sm rounded-2xl flex items-center justify-center text-[#0D9488] mb-6">
-                    {category.icon}
+                <div className="bg-[#F8FBFC] rounded-3xl shadow-sm border border-[#E2E8F0] overflow-hidden h-full">
+                  <div className="h-48 w-full">
+                    <img 
+                      src={category.image} 
+                      alt={category.title} 
+                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                    />
                   </div>
-                  <h2 className="text-2xl font-bold text-[#1A4B56] mb-3">{category.title}</h2>
-                  <p className="text-[#64748B] mb-6 leading-relaxed">{category.description}</p>
-                  
-                  <ul className="space-y-3 mb-8">
-                    {category.items.map((item, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <div className="mt-1 h-2 w-2 rounded-full bg-[#0D9488] mr-3 shrink-0 opacity-80"></div>
-                        <span className="text-[#2D3748] text-sm font-medium">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="p-8">
+                    <div className="h-14 w-14 bg-white shadow-sm rounded-2xl flex items-center justify-center text-[#0D9488] mb-6">
+                      {category.icon}
+                    </div>
+                    <h2 className="text-2xl font-bold text-[#1A4B56] mb-3">{category.title}</h2>
+                    <p className="text-[#64748B] mb-6 leading-relaxed">{category.description}</p>
+                    
+                    <ul className="space-y-3 mb-8">
+                      {category.items.map((item, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <div className="mt-1 h-2 w-2 rounded-full bg-[#0D9488] mr-3 shrink-0 opacity-80"></div>
+                          <span className="text-[#2D3748] text-sm font-medium">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             ))}

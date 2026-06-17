@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle, Loader2, User } from 'lucide-react';
 
 export const SignUp = () => {
@@ -11,6 +11,7 @@ export const SignUp = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +20,7 @@ export const SignUp = () => {
     setSuccess(false);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await signUp({
         email,
         password,
         options: {
@@ -33,11 +34,7 @@ export const SignUp = () => {
         throw error;
       }
 
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        throw new Error('An account with this email already exists.');
-      }
-
-      setSuccess(true);
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Failed to sign up');
     } finally {

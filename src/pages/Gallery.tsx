@@ -7,29 +7,29 @@ const galleryItems = [
     id: "1",
     title: "Porcelain Veneers",
     description: "Correction of spacing and discoloration for a unifed, bright smile.",
-    before: "https://images.unsplash.com/photo-1598256989467-33e70d4c9cc1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-    after: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+    before: "/before veneer.jpeg",
+    after: "/after-veneer.jpeg"
   },
   {
     id: "2",
     title: "Invisalign® Treatment",
     description: "12-month clear aligner therapy to correct crowding.",
-    before: "https://images.unsplash.com/photo-1598256989467-33e70d4c9cc1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
-    after: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80"
+    before: "/before-invisalign.jpeg",
+    after: "/after-invisalign.jpeg"
   },
   {
     id: "3",
     title: "Dental Implants & Crowns",
     description: "Restoration of a missing front tooth seamlessly matching natural teeth.",
-    before: "https://images.unsplash.com/photo-1598256989467-33e70d4c9cc1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
-    after: "https://images.unsplash.com/photo-1590620608754-db14757c2bd9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80"
+    before: "/before-implants.jpeg",
+    after: "/after-implants.jpeg"
   },
   {
     id: "4",
     title: "Professional Whitening",
     description: "In-office zoom whitening treatment, improving shade by 4 levels.",
-    before: "https://images.unsplash.com/photo-1598256989467-33e70d4c9cc1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80",
-    after: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80"
+    before: "/before-whitening.jpeg",
+    after: "/after-whitening.jpeg"
   }
 ];
 
@@ -57,7 +57,7 @@ export function Gallery() {
               <div key={item.id} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-[#E2E8F0]">
                 <div className="grid grid-cols-2">
                   <div className="relative">
-                    <img src={item.before} alt={`${item.title} Before`} className="w-full h-48 md:h-64 object-cover filter grayscale" />
+                    <img src={item.before} alt={`${item.title} Before`} className="w-full h-48 md:h-64 object-cover" />
                     <div className="absolute bottom-3 left-3 bg-black/60 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg backdrop-blur-sm">Before</div>
                   </div>
                   <div className="relative border-l border-[#E2E8F0]">

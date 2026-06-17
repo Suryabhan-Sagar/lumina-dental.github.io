@@ -70,7 +70,7 @@ export function About() {
                 <img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Dental equipment" className="rounded-2xl shadow-md object-cover h-64 w-full border border-[#E2E8F0]" />
               </div>
               <div className="space-y-4 mt-8">
-                <img src="https://images.unsplash.com/photo-1590620608754-db14757c2bd9?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Modern dental chair" className="rounded-2xl shadow-md object-cover h-64 w-full border border-[#E2E8F0]" />
+                <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=600&q=80" alt="Modern dental clinic" className="rounded-2xl shadow-md object-cover h-64 w-full border border-[#E2E8F0]" />
                 <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Consultation" className="rounded-2xl shadow-md object-cover h-48 w-full border border-[#E2E8F0]" />
               </div>
             </div>

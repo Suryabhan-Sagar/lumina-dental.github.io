@@ -1,12 +1,24 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+
+export interface User {
+  id: string;
+  email: string;
+  user_metadata?: {
+    full_name?: string;
+  };
+}
+
+export interface Session {
+  user: User;
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  signIn: (data: any) => Promise<{ data: any; error: any }>;
+  signUp: (data: any) => Promise<{ data: any; error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -14,6 +26,8 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  signIn: async () => ({ data: null, error: null }),
+  signUp: async () => ({ data: null, error: null }),
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -22,31 +36,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    const storedSession = localStorage.getItem('mockSession');
+    if (storedSession) {
+      try {
+        const parsed = JSON.parse(storedSession);
+        setSession(parsed);
+        setUser(parsed.user);
+      } catch (e) {
+        // ignore
+      }
+    }
+    setLoading(false);
   }, []);
 
+  const signIn = async ({ email }: any) => {
+    const newUser = { id: Math.random().toString(), email, user_metadata: { full_name: email.split('@')[0] } };
+    const newSession = { user: newUser };
+    setUser(newUser);
+    setSession(newSession);
+    localStorage.setItem('mockSession', JSON.stringify(newSession));
+    return { data: newSession, error: null };
+  };
+
+  const signUp = async ({ email, options }: any) => {
+    const newUser = { id: Math.random().toString(), email, user_metadata: { full_name: options?.data?.full_name || email.split('@')[0] } };
+    const newSession = { user: newUser };
+    setUser(newUser);
+    setSession(newSession);
+    localStorage.setItem('mockSession', JSON.stringify(newSession));
+    return { data: newSession, error: null };
+  };
+
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('mockSession');
+    setUser(null);
+    setSession(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, signIn, signUp }}>
       {children}
     </AuthContext.Provider>
   );

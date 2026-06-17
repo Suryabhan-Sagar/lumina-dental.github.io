@@ -3,7 +3,6 @@ import { SEO } from '../components/SEO';
 import { Calendar, Clock, FileText, CheckCircle, XCircle, AlertCircle, Printer, Loader, Lock } from 'lucide-react';
 import { CTAButton } from '../components/ui/CTAButton';
 import { jsPDF } from 'jspdf';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
@@ -31,21 +30,17 @@ export function AppointmentHistory() {
 
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const response = await fetch(`/api/appointments?userId=${user.id}`);
+      const result = await response.json();
       
-      if (fetchError) {
-        throw new Error(fetchError.message || 'Failed to fetch appointments');
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch appointments');
       }
 
-      console.log('Fetched appointments from Supabase:', data);
+      console.log('Fetched appointments from server:', result.data);
 
-      const mappedData: Appointment[] = (data || []).map((item: any) => {
-        // Format UUID simply to a shorter format like APT-1234
-        const shortId = item.id ? item.id.split('-')[0].toUpperCase().substring(0, 8) : '00000000';
+      const mappedData: Appointment[] = (result.data || []).map((item: any) => {
+        const shortId = item.id.toString().replace('0.', '').substring(0, 8);
         return {
           id: `APT-${shortId}`,
           date: item.appointment_date,

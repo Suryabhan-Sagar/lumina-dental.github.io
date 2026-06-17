@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Clock, Award, Star } from 'lucide-react';
+import { ShieldCheck, Clock, Award, Star, Smile } from 'lucide-react';
 import { CTAButton } from '../components/ui/CTAButton';
 import { ServiceCard } from '../components/ui/ServiceCard';
 import { TestimonialCard } from '../components/ui/TestimonialCard';
@@ -18,6 +18,12 @@ const services = [
     description: "Teeth whitening, veneers, and complete smile makeovers for your confidence.",
     icon: <Star className="h-6 w-6" />,
     link: "/services#cosmetic"
+  },
+  {
+    title: "Pediatric Dentistry",
+    description: "Specialized, gentle care to ensure your child's smile stays healthy as they grow.",
+    icon: <Smile className="h-6 w-6" />,
+    link: "/services#pediatric"
   }
 ];
 
@@ -129,7 +135,7 @@ export function Home() {
                     <h4 className="font-bold text-[#1A4B56]">New Patient Special</h4>
                     <p className="text-xs text-[#64748B]">Free teeth whitening with initial consultation</p>
                   </div>
-                  <div className="text-[#0D9488] font-bold text-2xl">$99</div>
+                  <div className="text-[#0D9488] font-bold text-2xl">₹99</div>
                 </div>
               </div>
             </div>
